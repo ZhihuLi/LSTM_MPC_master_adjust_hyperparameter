@@ -251,7 +251,21 @@ class LSTM_Width():
         X = np.array(tem1, dtype=np.float32)
         predition = self.sess1.run([self.pred], feed_dict={self.X : X})
         # return the array datatype
-        return (predition[0][-1] * 0.86990533 + 6.33300273)
+        return (predition[0][:][:] * 0.86990533 + 6.33300273)
+
+    def welding_pred_batch(self, Parameter_list):
+        Parameter_list1 = np.array(Parameter_list)
+        # Ws_list1 = np.array(Ws_list)
+        # mu: [9.65353383 14.83684211  1.98342659  6.33300273]
+        # sigma: [2.60548127 5.03382131 0.2475538  0.86990533]
+        Parameter_list1[:,:,0] = (Parameter_list1[:, :, 0] - 9.65353383) / 2.60548127
+        Parameter_list1[:,:,1] = (Parameter_list1[:,:,1]- 14.83684211) / 5.03382131
+
+        X = np.array(Parameter_list1, dtype=np.float32)
+        predition = self.sess1.run([self.pred], feed_dict={self.X : X})
+        # print("prediction: ", np.shape(predition))
+        # return the array datatype
+        return (predition[0][:][:] * 0.86990533 + 6.33300273)
 
 if __name__ == '__main__':
 

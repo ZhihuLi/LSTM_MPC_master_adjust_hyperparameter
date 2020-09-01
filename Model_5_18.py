@@ -258,6 +258,22 @@ class LSTM():
         # return the array datatype
         return (predition[0][-1]* 0.2475538 + 1.98342659)
 
+    def welding_pred_batch(self, Parameter_list):
+        Parameter_list1 = np.array(Parameter_list)
+        # Ws_list1 = np.array(Ws_list)
+        # mu: [9.65353383 14.83684211  1.98342659  6.33300273]
+        # sigma: [2.60548127 5.03382131 0.2475538  0.86990533]
+        Parameter_list1[:,:,0] = (Parameter_list1[:,:,0] - 9.65353383) / 2.60548127
+        Parameter_list1[:,:,1] = (Parameter_list1[:,:,1] - 14.83684211) / 5.03382131
+
+        # print('Rs_list:',Rs_list1)
+        # print('Ws_list:', Ws_list1)
+        Param = Parameter_list1
+        X = np.array(Param, dtype=np.float32)
+        predition = self.sess1.run([self.pred], feed_dict={self.X : X})
+        # return the array datatype
+        return (predition[0][:][:]* 0.2475538 + 1.98342659)
+
 if __name__ == '__main__':
 
     mylstm = LSTM()

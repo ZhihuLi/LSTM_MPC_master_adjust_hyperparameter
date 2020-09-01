@@ -60,6 +60,7 @@ class Predictor():
         self.count = 0 # reset count
 
     def cost_fun(self, h_predict_K, w_predict_K, h_target_K, w_target_K):
+        # print(np.shape(h_predict_K))
         assert h_predict_K.shape == (self.K, )
         assert w_predict_K.shape == (self.K, )
 
@@ -86,15 +87,16 @@ class Predictor():
             input_robot_speed_list[:, i] = self.Robot_speed_list[:, i + step + self.count + 10]
 
         h_predict_K, w_predict_K = self.Model_predict(input_welding_feed_list, input_robot_speed_list)
+        # print(np.shape(w_predict_K))
 
         for k in range(10):
-            self.h_state[:, step + self.count + 100 + k, 0] = copy.copy(h_predict_K)
-            self.w_state[:, step + self.count + 100 + k, 0] = copy.copy(w_predict_K)
+            self.h_state[:, step + self.count + 100 + k, 0] = copy.copy(h_predict_K[:,0])
+            self.w_state[:, step + self.count + 100 + k, 0] = copy.copy(w_predict_K[:,0])
 
         h_target_K = self.h_target_list[step + self.count + 100 + 9]
         w_target_K = self.w_target_list[step + self.count + 100 + 9]
         # compute the cost
-        cost = self.cost_fun(h_predict_K, w_predict_K, h_target_K, w_target_K)
+        cost = self.cost_fun(h_predict_K[:,0], w_predict_K[:,0], h_target_K, w_target_K)
         assert cost.shape == (self.K, )
 
         # update count
@@ -104,11 +106,8 @@ class Predictor():
     def Model_predict(self, input_welding_feed_list, input_robot_speed_list):
         input_welding_feed_list_s = copy.copy(input_welding_feed_list)
         input_robot_speed_list_s = copy.copy(input_robot_speed_list)
-        h_predict_K = np.zeros([self.K])
-        w_predict_K = np.zeros([self.K])
-        for i in range (self.K):
-            h_predict_K[i] = height_lstm.welding_pred(input_welding_feed_list_s[i, :, 0], input_robot_speed_list_s[i, :, 0])
-            w_predict_K[i] = width_lstm.welding_pred(input_welding_feed_list_s[i, :, 0], input_robot_speed_list_s[i, :, 0])
+        h_predict_K = height_lstm.welding_pred_batch(np.concatenate((input_welding_feed_list_s, input_robot_speed_list_s), axis = 2))
+        w_predict_K = width_lstm.welding_pred_batch(np.concatenate((input_welding_feed_list_s, input_robot_speed_list_s), axis = 2))
 
         return h_predict_K, w_predict_K
 
