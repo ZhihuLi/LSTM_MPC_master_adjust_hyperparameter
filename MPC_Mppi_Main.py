@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 from MPC_Mppi import MPPI
-mppi = MPPI(512, 200, 0.5)
+mppi = MPPI(2048, 200, 0.5)
 """
 目标形状设立1500个时间步
 """
-STEP_LIMIT = 1300
+STEP_LIMIT = 1500
 
 def get_real_shape():
     h_real, w_real = mppi.get_real_shape()
@@ -23,11 +23,11 @@ def mppi_main(h_target_list, w_target_list):
     # mppi.trajectory_update_state(h_real, w_real)
 
     # rollout with mppi algo
-    for step in range (STEP_LIMIT):
+    for step in range(STEP_LIMIT):
         if (step % 10 == 0):
             print("step: ", step)
             mppi.compute_cost(step)
-            target_action_Wf_list, target_action_Rs_list, target_action_Wf, target_action_Rs = mppi.compute_noise_action()
+            target_action_Wf, target_action_Rs = mppi.compute_noise_action()
             mppi.trajectory_update_shape(target_action_Wf, target_action_Rs)
             mppi.Delta_update()
             if step <= 200:
@@ -71,6 +71,6 @@ def mppi_main(h_target_list, w_target_list):
     plt.show()
 
 if __name__ == '__main__':
-    h_target_list = [2]*1700
-    w_target_list = [6]*1700
+    h_target_list = [2]*1800
+    w_target_list = [6]*1800
     mppi_main(h_target_list, w_target_list)

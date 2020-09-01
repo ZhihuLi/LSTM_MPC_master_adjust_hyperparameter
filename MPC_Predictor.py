@@ -13,17 +13,17 @@ class Predictor():
     def __init__(self, sample_nums, timesteps):
         self.K = sample_nums # number of sample trajectories
         self.T = timesteps # timesteps to predict
-        self.trajectory_length = 1700
+        self.trajectory_length = 1900
         self.input_sequence_len = height_lstm.TIMESTEPS
         # state
-        self.h_state = np.zeros([self.K, 1700, 1])
-        self.w_state = np.zeros([self.K, 1700, 1])
-        self.Welding_feed_list = np.zeros([self.K, 1700, 1])
-        self.Robot_speed_list = np.zeros([self.K, 1700, 1])
+        self.h_state = np.zeros([self.K, 1800, 1])
+        self.w_state = np.zeros([self.K, 1800, 1])
+        self.Welding_feed_list = np.zeros([self.K, 1900, 1])
+        self.Robot_speed_list = np.zeros([self.K, 1900, 1])
 
         self.count = 0 # reset to zero every catch_up, count how many states have been changed
-        self.h_target_list = np.zeros([1700])
-        self.w_target_list = np.zeros([1700])
+        self.h_target_list = np.zeros([1800])
+        self.w_target_list = np.zeros([1800])
 
     def get_real_shape(self, Welding_feed_list, Robot_speed_list):
         h_real = height_lstm.welding_pred(Welding_feed_list, Robot_speed_list)
@@ -44,8 +44,8 @@ class Predictor():
         assert (np.asarray(Robot_speed_list)).shape == (step + 200, )
         assert (np.asarray(h_state)).shape == (step + 100, )
         assert (np.asarray(w_state)).shape == (step + 100, )
-        assert (np.asarray(h_target_list)).shape == (1700, )
-        assert (np.asarray(w_target_list)).shape == (1700, )
+        assert (np.asarray(h_target_list)).shape == (1800, )
+        assert (np.asarray(w_target_list)).shape == (1800, )
 
         # state (for input of the model and for cost)
         self.Welding_feed_list[:, :(step + 200),0] = Welding_feed_list[:]
@@ -74,7 +74,7 @@ class Predictor():
         input_welding_feed_list = np.zeros([self.K, self.input_sequence_len, 1])
         input_robot_speed_list = np.zeros([self.K, self.input_sequence_len, 1])
 
-        for k in range (10):
+        for k in range(10):
             self.Welding_feed_list[:, step + self.count + k + 200, 0] \
                 = self.Welding_feed_list[:, step + self.count + 199, 0] + action_[:, 0]
             self.Robot_speed_list[:, step + self.count + k + 200, 0] \
@@ -82,13 +82,16 @@ class Predictor():
 
         # update the action data for current state
         # get input sequence for model, the model need self.input_sequence_len steps sequence as input
-        for i in range (self.input_sequence_len):
-            input_welding_feed_list[:, i] = self.Welding_feed_list[:, i + step + self.count + 10]
-            input_robot_speed_list[:, i] = self.Robot_speed_list[:, i + step + self.count + 10]
+        # for i in range(self.input_sequence_len):
+        input_welding_feed_list[:, :] = self.Welding_feed_list[:, (0 + step + self.count + 10):(self.input_sequence_len + step + self.count + 10)]
+        input_robot_speed_list[:, :] = self.Robot_speed_list[:, (0 + step + self.count + 10):(self.input_sequence_len + step + self.count + 10)]
 
         h_predict_K, w_predict_K = self.Model_predict(input_welding_feed_list, input_robot_speed_list)
         # print(np.shape(w_predict_K))
 
+        # for k in range(10):
+        # self.h_state[:, (step + self.count + 100) : (step + self.count + 100 + 10), 0] = copy.copy(h_predict_K[:,0])
+        # self.w_state[:, (step + self.count + 100) : (step + self.count + 100 + 10), 0] = copy.copy(w_predict_K[:,0])
         for k in range(10):
             self.h_state[:, step + self.count + 100 + k, 0] = copy.copy(h_predict_K[:,0])
             self.w_state[:, step + self.count + 100 + k, 0] = copy.copy(w_predict_K[:,0])

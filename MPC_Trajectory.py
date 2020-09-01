@@ -8,8 +8,8 @@ class Trajectory():
     def __init__(self):
         self.Welding_feed_list = [8] * 200
         self.Robot_speed_list = [12] * 200
-        self.h_target_list = np.zeros([1700])
-        self.w_target_list = np.zeros([1700])
+        self.h_target_list = np.zeros([1800])
+        self.w_target_list = np.zeros([1800])
         self.h_state = [1.9819496]*100
         self.w_state = [6.2371025]*100
         self.count = 0

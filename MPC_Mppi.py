@@ -44,7 +44,7 @@ class MPPI():
     def compute_cost(self, step):
         # action_list = np.zeros([self.K, self.T, 2])
         # 噪声使用正太分布进行采样，然后每一步的噪声中有80%是上一步的噪声
-        self.noise = np.clip(np.random.normal(loc=0, scale=0.3, size=(self.K, 20, self.dim_delta)), -1, 1)
+        self.noise = np.clip(np.random.normal(loc=0, scale=0.2, size=(self.K, 20, self.dim_delta)), -1, 1)
         self.predictor.catch_up(self.trajectory.Welding_feed_list, self.trajectory.Robot_speed_list,
                                 self.trajectory.get_h_state(), self.trajectory.get_w_state(),
                                 self.trajectory.get_h_target(), self.trajectory.get_w_target(), step)
@@ -56,7 +56,8 @@ class MPPI():
             if t > 0:
                 eps[:, t] = 0.8*eps[:, t-1] + 0.2*eps[:, t]
             self.noise[:, t] = copy.copy(eps[:, t])
-            action = self.Delta[t] + eps[:,t]
+            # action = self.Delta[t] + eps[:,t]
+            action = eps[:, t]
             assert action.shape == (self.K, 2)
             cost = self.predictor.predict(action, step)
             assert cost.shape == (self.K, )
@@ -75,7 +76,7 @@ class MPPI():
          action_Wf = copy.copy(action_Wf_list[0])
          action_Rs = copy.copy(action_Rs_list[0])
 
-         return action_Wf_list, action_Rs_list, action_Wf, action_Rs
+         return action_Wf, action_Rs
 
     def trajectory_update_shape(self, target_action_Wf, target_action_Rs):
         self.trajectory.update_welding_parameter(target_action_Wf, target_action_Rs)
